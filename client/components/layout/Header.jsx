@@ -23,7 +23,7 @@ export default function Header() {
           <img
             src={logo}
             alt="Salarify.io"
-            className="h-12 w-auto sm:h-14"
+            className="h-24 w-auto md:h-28 lg:h-32 xl:h-36"  
           />
         </Link>
 
