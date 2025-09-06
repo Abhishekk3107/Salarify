@@ -43,95 +43,67 @@ export default function SalaryBreakdown() {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Set up context for animations
     const ctx = gsap.context(() => {
-      // Header animation
-      const headerTimeline = gsap.timeline();
-      
-      headerTimeline
-        .from('.salary-title', {
-          y: 30,
-          opacity: 0,
-          duration: 0.8,
-          ease: "power3.out"
-        })
-        .from('.salary-description', {
-          y: 20,
-          opacity: 0,
-          duration: 0.6,
-          ease: "power2.out"
-        }, "-=0.4");
-
-      // Cards entrance animation
-      gsap.fromTo('.input-card, .results-card',
-        {
-          y: 60,
-          opacity: 0,
-          scale: 0.95
+      // Animate header on scroll
+      gsap.from('.salary-title, .salary-description', {
+        scrollTrigger: {
+          trigger: '.salary-title',
+          start: 'top 80%',
         },
-        {
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          duration: 0.8,
-          stagger: 0.2,
-          ease: "back.out(1.2)",
-          delay: 0.3
-        }
-      );
-
-      // Info rows staggered animation
-      gsap.from('.info-row', {
-        x: -20,
-        opacity: 0,
-        duration: 0.5,
-        stagger: 0.08,
-        delay: 1,
-        ease: "power2.out"
-      });
-
-      // Chart animation
-      gsap.from('.chart-container', {
         y: 30,
         opacity: 0,
         duration: 0.8,
-        delay: 1.5,
-        ease: "power3.out"
+        stagger: 0.2,
+        ease: 'power3.out',
       });
 
-      // Number counter animation for values
-      const numberElements = gsap.utils.toArray('.animated-value');
-      numberElements.forEach(element => {
-        if (!element) return;
-        
-        const finalText = element.textContent;
-        const finalValue = parseFloat(finalText.replace(/[₹,]/g, ''));
-        
-        if (!isNaN(finalValue) && finalValue > 0) {
-          element.textContent = '₹0';
-          gsap.to(element, {
-            textContent: finalValue,
-            duration: 1.5,
-            delay: 1.2,
-            snap: { textContent: 1000 },
-            onUpdate: function() {
-              const currentValue = Math.round(this.targets()[0].textContent);
-              element.textContent = inr(currentValue);
-            },
-            ease: "power2.out"
-          });
-        }
+      // Animate cards
+      gsap.from('.input-card, .results-card', {
+        scrollTrigger: {
+          trigger: '.input-card',
+          start: 'top 85%',
+        },
+        y: 50,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.2,
+        ease: 'back.out(1.2)',
       });
 
-      // Floating background elements
+      // Animate info rows
+      gsap.from('.info-row', {
+        scrollTrigger: {
+          trigger: '.results-card',
+          start: 'top 80%',
+        },
+        x: -20,
+        opacity: 0,
+        duration: 0.4,
+        stagger: 0.07,
+        ease: 'power2.out',
+      });
+
+      // Animate chart
+      gsap.from('.chart-container', {
+        scrollTrigger: {
+          trigger: '.chart-container',
+          start: 'top 85%',
+        },
+        y: 30,
+        opacity: 0,
+        duration: 0.8,
+        ease: 'power3.out',
+      });
+
+      // Floating background animations
       gsap.to('.floating-bg-1', {
-        y: -20,
-        x: 15,
+        y: -15,
+        x: 10,
         rotation: 5,
         duration: 4,
-        ease: "power2.inOut",
+        ease: 'power2.inOut',
         yoyo: true,
-        repeat: -1
+        repeat: -1,
       });
 
       gsap.to('.floating-bg-2', {
@@ -139,162 +111,112 @@ export default function SalaryBreakdown() {
         x: -10,
         rotation: -3,
         duration: 3.5,
-        ease: "power2.inOut",
+        ease: 'power2.inOut',
         yoyo: true,
         repeat: -1,
-        delay: 1
+        delay: 1,
       });
 
-      // Highlight row pulse animation
+      // Highlight row pulse
       gsap.to('.highlight-row', {
         opacity: 0.9,
         duration: 2,
-        ease: "power2.inOut",
+        ease: 'power2.inOut',
         yoyo: true,
-        repeat: -1
+        repeat: -1,
       });
+    }, containerRef);
 
-    }, containerRef); // Scope animations to containerRef
-
-    // Input field interactions
-    const ctcInput = document.getElementById('ctc');
-    let inputHandlers = null;
-
-    if (ctcInput) {
-      const handleFocus = () => {
-        gsap.to(ctcInput, {
-          scale: 1.02,
-          duration: 0.2,
-          ease: "power2.out"
-        });
-      };
-
-      const handleBlur = () => {
-        gsap.to(ctcInput, {
-          scale: 1,
-          duration: 0.2,
-          ease: "power2.out"
-        });
-      };
-
-      ctcInput.addEventListener('focus', handleFocus);
-      ctcInput.addEventListener('blur', handleBlur);
-      inputHandlers = { handleFocus, handleBlur };
-    }
-
-    // Icon hover animations
-    const infoIcons = gsap.utils.toArray('.info-icon');
-    const iconHandlers = [];
-
-    infoIcons.forEach(icon => {
-      if (!icon) return;
-
-      const handleMouseEnter = () => {
-        gsap.to(icon, {
-          scale: 1.3,
-          rotation: 15,
-          duration: 0.3,
-          ease: "back.out(2)"
-        });
-      };
-
-      const handleMouseLeave = () => {
-        gsap.to(icon, {
-          scale: 1,
-          rotation: 0,
-          duration: 0.3,
-          ease: "power2.out"
-        });
-      };
-
-      icon.addEventListener('mouseenter', handleMouseEnter);
-      icon.addEventListener('mouseleave', handleMouseLeave);
-      iconHandlers.push({ icon, handleMouseEnter, handleMouseLeave });
-    });
-
-    // Cleanup function
-    return () => {
-      ctx.revert(); // This will clean up all GSAP animations
-      
-      // Clean up input event listeners
-      if (ctcInput && inputHandlers) {
-        ctcInput.removeEventListener('focus', inputHandlers.handleFocus);
-        ctcInput.removeEventListener('blur', inputHandlers.handleBlur);
-      }
-      
-      // Clean up icon event listeners
-      iconHandlers.forEach(({ icon, handleMouseEnter, handleMouseLeave }) => {
-        if (icon) {
-          icon.removeEventListener('mouseenter', handleMouseEnter);
-          icon.removeEventListener('mouseleave', handleMouseLeave);
-        }
-      });
-    };
+    return () => ctx.revert();
   }, []);
 
-  // Re-animate values when CTC changes
+  // Re-animate numbers when CTC changes
   useEffect(() => {
-    if (ctc > 0) {
-      gsap.fromTo('.animated-value', 
-        { scale: 1.1, opacity: 0.7 },
-        { scale: 1, opacity: 1, duration: 0.3, ease: "power2.out" }
-      );
-    }
+    gsap.fromTo(
+      '.animated-value',
+      { scale: 1.1, opacity: 0.7 },
+      { scale: 1, opacity: 1, duration: 0.3, ease: 'power2.out' }
+    );
   }, [breakdown]);
 
   return (
-    <div ref={containerRef} className="container py-10 relative overflow-hidden">
-      {/* Floating background elements */}
+    <div
+      ref={containerRef}
+      className="container px-4 sm:px-6 lg:px-8 py-8 sm:py-10 relative overflow-hidden"
+    >
+      {/* Floating background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="floating-bg-1 absolute top-20 right-20 w-40 h-40 bg-primary/5 rounded-full blur-xl"></div>
-        <div className="floating-bg-2 absolute bottom-20 left-20 w-32 h-32 bg-secondary/5 rounded-full blur-lg"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-accent/5 rounded-full blur-2xl"></div>
+        <div className="floating-bg-1 absolute top-10 right-10 w-28 h-28 sm:w-40 sm:h-40 bg-primary/5 rounded-full blur-lg"></div>
+        <div className="floating-bg-2 absolute bottom-10 left-10 w-24 h-24 sm:w-32 sm:h-32 bg-secondary/5 rounded-full blur-md"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 sm:w-48 sm:h-48 bg-accent/5 rounded-full blur-xl"></div>
       </div>
 
-      <div className="mb-8 relative z-10">
-        <h1 className="salary-title text-3xl font-bold tracking-tight">Salary Breakdown</h1>
-        <p className="salary-description mt-2 text-muted-foreground">Deconstruct your CTC into clear components with visual insights.</p>
+      {/* Header */}
+      <div className="mb-6 sm:mb-8 relative z-10 text-center sm:text-left">
+        <h1 className="salary-title text-2xl sm:text-3xl font-bold tracking-tight">
+          Salary Breakdown
+        </h1>
+        <p className="salary-description mt-2 text-sm sm:text-base text-muted-foreground">
+          Deconstruct your CTC into clear components with visual insights.
+        </p>
       </div>
 
+      {/* Cards grid */}
       <div className="grid gap-6 lg:grid-cols-2 relative z-10">
+        {/* Input Card */}
         <div className="input-card">
           <Card className="border-2 transition-all duration-300 hover:border-primary/20 hover:shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                 Enter your details
                 <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
               </CardTitle>
-              <CardDescription>Start with your annual CTC.</CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
+                Start with your annual CTC.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-6">
+            <CardContent className="grid gap-4 sm:gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="ctc" className="font-medium">Annual CTC</Label>
+                <Label htmlFor="ctc" className="font-medium text-sm sm:text-base">
+                  Annual CTC
+                </Label>
                 <Input
                   id="ctc"
                   inputMode="numeric"
                   placeholder="e.g. 1200000"
                   value={ctc.toString()}
-                  onChange={(e) => setCtc(Number(e.target.value.replace(/\D/g, '')) || 0)}
+                  onChange={(e) =>
+                    setCtc(Number(e.target.value.replace(/\D/g, '')) || 0)
+                  }
                   aria-describedby="ctc-help"
                   className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
                 />
-                <p id="ctc-help" className="text-xs text-muted-foreground">Enter your total annual CTC in INR.</p>
+                <p
+                  id="ctc-help"
+                  className="text-xs text-muted-foreground"
+                >
+                  Enter your total annual CTC in INR.
+                </p>
               </div>
             </CardContent>
           </Card>
         </div>
 
+        {/* Results Card */}
         <div className="results-card">
           <Card className="border-2 transition-all duration-300 hover:border-primary/20 hover:shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                 Results
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               </CardTitle>
-              <CardDescription>Live breakdown with definitions.</CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
+                Live breakdown with definitions.
+              </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              {/* Info rows */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <InfoRow label="CTC" tooltip={tooltips.CTC} value={breakdown.ctc} />
                 <InfoRow label="Basic Salary" tooltip={tooltips.Basic} value={breakdown.basic} />
                 <InfoRow label="HRA" tooltip={tooltips.HRA} value={breakdown.hra} />
@@ -306,15 +228,20 @@ export default function SalaryBreakdown() {
                 <InfoRow label="Deductions" tooltip="Total deductions from gross." value={breakdown.totalDeductions} />
                 <InfoRow label="Take-Home (Pre-Tax)" tooltip={tooltips.TakeHome} value={breakdown.takeHomePreTax} highlight />
               </div>
-              <div className="chart-container mt-2">
+
+              {/* Chart */}
+              <div className="chart-container mt-4 overflow-x-auto">
                 <ChartContainer
                   config={{ salary: { label: 'Component', color: 'hsl(var(--primary))' } }}
-                  className="w-full"
+                  className="w-full min-w-[320px]"
                 >
                   <BarChart data={data}>
                     <CartesianGrid vertical={false} />
                     <XAxis dataKey="name" tickLine={false} axisLine={false} />
-                    <YAxis tickFormatter={(v) => `₹${(v / 100000).toFixed(0)}L`} width={50} />
+                    <YAxis
+                      tickFormatter={(v) => `₹${(v / 100000).toFixed(0)}L`}
+                      width={45}
+                    />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Bar dataKey="value" fill="var(--color-salary)" radius={4} />
                   </BarChart>
@@ -330,13 +257,15 @@ export default function SalaryBreakdown() {
 
 function InfoRow({ label, value, tooltip, highlight }) {
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 4 }} 
-      animate={{ opacity: 1, y: 0 }} 
+    <motion.div
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
       className={cn(
-        'info-row flex items-center justify-between rounded-md border p-3 transition-all duration-200 hover:shadow-md', 
-        highlight ? 'highlight-row bg-green-500/10 text-foreground border-green-500/20' : 'bg-card hover:bg-accent/50'
+        'info-row flex items-center justify-between rounded-md border p-3 transition-all duration-200 hover:shadow-md',
+        highlight
+          ? 'highlight-row bg-green-500/10 text-foreground border-green-500/20'
+          : 'bg-card hover:bg-accent/50'
       )}
     >
       <div className="flex items-center gap-2">
@@ -344,7 +273,10 @@ function InfoRow({ label, value, tooltip, highlight }) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <button aria-label={`About ${label}`} className="text-muted-foreground">
+              <button
+                aria-label={`About ${label}`}
+                className="text-muted-foreground"
+              >
                 <Info className="info-icon h-4 w-4 transition-all duration-200 cursor-pointer" />
               </button>
             </TooltipTrigger>
@@ -352,7 +284,9 @@ function InfoRow({ label, value, tooltip, highlight }) {
           </Tooltip>
         </TooltipProvider>
       </div>
-      <span className="animated-value font-mono font-semibold tabular-nums">{inr(value)}</span>
+      <span className="animated-value font-mono font-semibold tabular-nums">
+        {inr(value)}
+      </span>
     </motion.div>
   );
 }
