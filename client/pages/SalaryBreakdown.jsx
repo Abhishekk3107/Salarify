@@ -6,8 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { calculateSalaryBreakdown, inr } from '@/lib/finance.js';
 import { Info } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as ReTooltip } from 'recharts';
 import { cn } from '@/lib/utils';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -44,7 +43,6 @@ export default function SalaryBreakdown() {
     if (!containerRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Animate header on scroll
       gsap.from('.salary-title, .salary-description', {
         scrollTrigger: {
           trigger: '.salary-title',
@@ -57,7 +55,6 @@ export default function SalaryBreakdown() {
         ease: 'power3.out',
       });
 
-      // Animate cards
       gsap.from('.input-card, .results-card', {
         scrollTrigger: {
           trigger: '.input-card',
@@ -70,67 +67,21 @@ export default function SalaryBreakdown() {
         ease: 'back.out(1.2)',
       });
 
-      // Animate info rows
-      gsap.from('.info-row', {
-        scrollTrigger: {
-          trigger: '.results-card',
-          start: 'top 80%',
-        },
-        x: -20,
-        opacity: 0,
-        duration: 0.4,
-        stagger: 0.07,
-        ease: 'power2.out',
-      });
-
-      // Animate chart
       gsap.from('.chart-container', {
         scrollTrigger: {
           trigger: '.chart-container',
-          start: 'top 85%',
+          start: 'top 90%',
         },
         y: 30,
         opacity: 0,
         duration: 0.8,
         ease: 'power3.out',
       });
-
-      // Floating background animations
-      gsap.to('.floating-bg-1', {
-        y: -15,
-        x: 10,
-        rotation: 5,
-        duration: 4,
-        ease: 'power2.inOut',
-        yoyo: true,
-        repeat: -1,
-      });
-
-      gsap.to('.floating-bg-2', {
-        y: 15,
-        x: -10,
-        rotation: -3,
-        duration: 3.5,
-        ease: 'power2.inOut',
-        yoyo: true,
-        repeat: -1,
-        delay: 1,
-      });
-
-      // Highlight row pulse
-      gsap.to('.highlight-row', {
-        opacity: 0.9,
-        duration: 2,
-        ease: 'power2.inOut',
-        yoyo: true,
-        repeat: -1,
-      });
     }, containerRef);
 
     return () => ctx.revert();
   }, []);
 
-  // Re-animate numbers when CTC changes
   useEffect(() => {
     gsap.fromTo(
       '.animated-value',
@@ -144,13 +95,6 @@ export default function SalaryBreakdown() {
       ref={containerRef}
       className="container px-4 sm:px-6 lg:px-8 py-8 sm:py-10 relative overflow-hidden"
     >
-      {/* Floating background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="floating-bg-1 absolute top-10 right-10 w-28 h-28 sm:w-40 sm:h-40 bg-primary/5 rounded-full blur-lg"></div>
-        <div className="floating-bg-2 absolute bottom-10 left-10 w-24 h-24 sm:w-32 sm:h-32 bg-secondary/5 rounded-full blur-md"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 sm:w-48 sm:h-48 bg-accent/5 rounded-full blur-xl"></div>
-      </div>
-
       {/* Header */}
       <div className="mb-6 sm:mb-8 relative z-10 text-center sm:text-left">
         <h1 className="salary-title text-2xl sm:text-3xl font-bold tracking-tight">
@@ -189,12 +133,8 @@ export default function SalaryBreakdown() {
                     setCtc(Number(e.target.value.replace(/\D/g, '')) || 0)
                   }
                   aria-describedby="ctc-help"
-                  className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
                 />
-                <p
-                  id="ctc-help"
-                  className="text-xs text-muted-foreground"
-                >
+                <p id="ctc-help" className="text-xs text-muted-foreground">
                   Enter your total annual CTC in INR.
                 </p>
               </div>
@@ -230,22 +170,19 @@ export default function SalaryBreakdown() {
               </div>
 
               {/* Chart */}
-              <div className="chart-container mt-4 overflow-x-auto">
-                <ChartContainer
-                  config={{ salary: { label: 'Component', color: 'hsl(var(--primary))' } }}
-                  className="w-full min-w-[320px]"
-                >
+              <div className="chart-container mt-4 h-[250px] sm:h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={data}>
-                    <CartesianGrid vertical={false} />
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" />
                     <XAxis dataKey="name" tickLine={false} axisLine={false} />
                     <YAxis
                       tickFormatter={(v) => `₹${(v / 100000).toFixed(0)}L`}
-                      width={45}
+                      width={50}
                     />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="value" fill="var(--color-salary)" radius={4} />
+                    <ReTooltip formatter={(v) => inr(v)} />
+                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={6} />
                   </BarChart>
-                </ChartContainer>
+                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
