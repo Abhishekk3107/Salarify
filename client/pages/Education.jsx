@@ -8,16 +8,20 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
 
-// Education listing page — concise and human-friendly copy.
 export default function Education() {
   const headerRef = useRef(null);
   const cardsContainerRef = useRef(null);
   const cardsRef = useRef([]);
 
   useEffect(() => {
+    // ✅ Prevent re-initializing GSAP on back navigation
+    if (!cardsContainerRef.current || ScrollTrigger.getAll().length > 0) {
+      return;
+    }
+
     // Header animation
     const headerTimeline = gsap.timeline();
-    
+
     headerTimeline
       .from('.education-title', {
         y: 30,
@@ -173,7 +177,7 @@ export default function Education() {
       repeat: -1
     });
 
-    // Cleanup function
+    // Cleanup only removes ScrollTrigger, not animations
     return () => {
       ScrollTrigger.getAll().forEach(st => st.kill());
     };
