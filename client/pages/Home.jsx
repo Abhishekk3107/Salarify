@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion';
 import { CheckCircle2, Shield, LineChart } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { 
-  BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer 
+import {
+  BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from 'recharts';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -16,8 +16,8 @@ export default function Home() {
   const featuresRef = useRef(null);
   const floatingElementsRef = useRef(null);
 
-  // Sample salary data for chart
-  const chartData = [
+  // Sample salary data
+  const initialData = [
     { name: 'CTC', value: 1200000 },
     { name: 'Basic', value: 480000 },
     { name: 'HRA', value: 240000 },
@@ -25,7 +25,19 @@ export default function Home() {
     { name: 'Special', value: 422400 },
   ];
 
+  const [chartData, setChartData] = useState(initialData.map(d => ({ ...d, value: 0 })));
+
   useEffect(() => {
+    // Animate salary bars
+    gsap.to(chartData, {
+      duration: 1.5,
+      value: (i) => initialData[i].value,
+      ease: 'power2.out',
+      onUpdate: () => {
+        setChartData([...chartData]);
+      },
+    });
+
     // Hero animations
     const heroTimeline = gsap.timeline();
     heroTimeline
@@ -39,13 +51,11 @@ export default function Home() {
     gsap.set(cardRef.current, { y: 20 });
     gsap.to(cardRef.current, { y: -10, duration: 3, ease: "power2.inOut", yoyo: true, repeat: -1 });
 
-    // Chart animation on mount
-    gsap.from('.chart-container', { y: 20, opacity: 0, duration: 1, ease: "power3.out", delay: 0.5 });
-
     // Features section scroll animation
-    gsap.fromTo('.feature-card', 
+    gsap.fromTo('.feature-card',
       { y: 60, opacity: 0, scale: 0.9 },
-      { y: 0, opacity: 1, scale: 1, duration: 0.8, stagger: 0.2, ease: "back.out(1.2)",
+      {
+        y: 0, opacity: 1, scale: 1, duration: 0.8, stagger: 0.2, ease: "back.out(1.2)",
         scrollTrigger: {
           trigger: featuresRef.current,
           start: "top 80%",
@@ -55,12 +65,12 @@ export default function Home() {
       }
     );
 
-    // Cleanup ScrollTrigger on unmount
-    return () => { ScrollTrigger.getAll().forEach(st => st.kill()); };
+    // Cleanup ScrollTrigger
+    return () => ScrollTrigger.getAll().forEach(st => st.kill());
   }, []);
 
   return (
-    <div className="bg-gradient-to-b from-background to-muted/40 relative">
+    <div className="bg-gradient-to-b from-background to-muted/40 relative min-h-screen">
       {/* Floating background elements */}
       <div ref={floatingElementsRef} className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="floating-element-1 absolute top-20 right-10 w-20 h-20 bg-primary/5 rounded-full"></div>
@@ -81,7 +91,7 @@ export default function Home() {
             information. No jargon, just practical insights.
           </p>
           <div className="hero-buttons mt-8 flex flex-wrap gap-3">
-            <Link to="/salary-breakdown" className="animated-button inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all duration-200">
+            <Link to="/salary-breakdown" className="animated-button inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow hover:opacity-95 transition-all duration-200">
               Analyze Your Salary
             </Link>
             <Link to="/tax-calculator" className="animated-button inline-flex items-center justify-center rounded-md border px-5 py-3 text-sm font-medium hover:bg-accent transition-all duration-200">
@@ -89,26 +99,20 @@ export default function Home() {
             </Link>
           </div>
           <ul className="hero-features mt-8 grid gap-3 text-sm text-muted-foreground">
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-500" /> Live calculators with clear visuals
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-500" /> Side-by-side tax comparisons
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-500" /> Inline explanations for key terms
-            </li>
+            <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" /> Live calculators with clear visuals</li>
+            <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" /> Side-by-side tax comparisons</li>
+            <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" /> Inline explanations for key terms</li>
           </ul>
         </motion.div>
 
-        {/* Hero card with chart */}
+        {/* Hero card with animated chart */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="relative">
-          <div ref={cardRef} className="relative mx-auto aspect-[4/3] w-full max-w-xl overflow-hidden rounded-xl border bg-card p-6 shadow">
+          <div ref={cardRef} className="relative mx-auto w-full max-w-xl overflow-hidden rounded-xl border bg-card p-6 shadow">
             <div className="absolute right-6 top-6 rounded-md bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-600">Save more with clarity</div>
 
             {/* Salary items */}
             <div className="mt-8 grid gap-3">
-              {chartData.map((item) => (
+              {initialData.map(item => (
                 <div key={item.name} className="salary-item flex items-center justify-between text-sm">
                   <span>{item.name}</span>
                   <span className="animated-number font-mono font-semibold">₹{item.value.toLocaleString('en-IN')}</span>
@@ -116,14 +120,16 @@ export default function Home() {
               ))}
 
               {/* Recharts BarChart */}
-              <div className="chart-container mt-2 h-40 w-full rounded-md bg-muted overflow-hidden">
+              <div className="chart-container mt-4 h-48 w-full rounded-md bg-muted p-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
-                    <YAxis tickFormatter={(v) => `₹${(v / 100000).toFixed(1)}L`} />
-                    <Tooltip formatter={(val) => `₹${val.toLocaleString('en-IN')}`} />
-                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    <YAxis tickFormatter={v => `₹${(v / 100000).toFixed(1)}L`} />
+                    <Tooltip formatter={val => `₹${val.toLocaleString('en-IN')}`} />
+                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
+                      {/* Animations handled via state changes in chartData */}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
